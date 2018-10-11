@@ -1,0 +1,71 @@
+#! /usr/bin/env python
+#
+
+import sys
+from optparse import OptionParser
+
+from g2base import ssdlog
+from g2ana.ana import main
+
+
+if __name__ == "__main__":
+
+    # Parse command line options
+
+    usage = "usage: %prog [options] [file] ..."
+    optprs = OptionParser(usage=usage, version=('%prog'))
+
+
+    optprs.add_option("--debug", dest="debug", default=False,
+                      action="store_true",
+                      help="Enter the pdb debugger on main()")
+
+    optprs.add_option("--svcname", dest="svcname", metavar="SVCNAME",
+                      default="ANA",
+                      help="Base service name is ANA")
+
+    optprs.add_option("--rohost", dest="rohost", metavar="ROHOST",
+                      default="g2ins1.sum.subaru.nao.ac.jp",
+                      help="Specify rohost")
+
+    optprs.add_option("--logname", dest="logname", metavar="LOGNAME",
+                      default="anamenu.log",
+                      help="Specify logfile name [anamenu | ana2menu | hanamenu | sbanamenu]")
+
+    optprs.add_option("--port", dest="port", metavar="PORT",
+                      default=50000,
+                      help="Specify port numer")
+
+    optprs.add_option("--monport", dest="monport", metavar="MONPORT",
+                      default=50001,
+                      help="Specify mon-port numer")
+
+    optprs.add_option("--ds9port", dest="ds9port", metavar="DS9PORT",
+                      default=50002,
+                      help="Specify ds9-port numer")
+
+    optprs.add_option("--profile", dest="profile", action="store_true",
+                      default=False,
+                      help="Run the profiler on main()")
+    ssdlog.addlogopts(optprs)
+
+    (options, args) = optprs.parse_args(sys.argv[1:])
+
+    if len(args) != 1:
+        optprs.error("incorrect number of arguments")
+
+    # Are we debugging this?
+    if options.debug:
+        import pdb
+
+        pdb.run('main(options, args)')
+
+    # Are we profiling this?
+    elif options.profile:
+        import profile
+
+        print("%s profile:" % sys.argv[0])
+        profile.run('main(options, args)')
+
+    else:
+        main(options, args)
