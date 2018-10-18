@@ -24,7 +24,7 @@ setup(
                 'g2ana.icons',
                 ],
     package_data = {'g2ana.icons':['*.png']},
-    scripts = ['scripts/anamenu', 'scripts/cleanup_fits'],
+    scripts = ['scripts/anamenu', 'scripts/datasink', 'scripts/cleanup_fits'],
     classifiers = [
         "License :: OSI Approved :: BSD License",
         "Operating System :: MacOS :: MacOS X",
