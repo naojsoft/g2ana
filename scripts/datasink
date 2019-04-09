@@ -12,7 +12,7 @@ import signal
 from optparse import OptionParser
 
 from g2base import ssdlog, myproc
-from g2client.datasink import main
+from g2ana.datasink import main
 
 if __name__ == '__main__':
 

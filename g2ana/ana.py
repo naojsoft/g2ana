@@ -203,14 +203,14 @@ class AnaMenu(object):
     def __init_propid_entry(self):
         self.get_propid()
 
-        if self.propid:
+        if self.propid is not None:
             #self.__set_propfile()
             #self.write_propid()
             self.w.propid.set_text(self.propid)
 
     def get_propid(self):
         oid = getpass.getuser()
-        self.logger.debug('user=%s' %oid)
+        self.logger.debug('user=%s' % oid)
         # for now, handle both u and o account. note: eventually, o-account only
         m = re.search(r'(?<=u|o)\d{5}', oid)
         if m:

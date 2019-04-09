@@ -4,6 +4,7 @@ import sys
 from optparse import OptionParser
 
 from g2base import ssdlog
+from g2ana.cleanup_fits import main
 
 
 if __name__ == '__main__':
