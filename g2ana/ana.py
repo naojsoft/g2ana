@@ -58,6 +58,7 @@ class Process(object):
                 self.logger.error('error: terminating process. %s' %e)
 
 
+
 class AnaMenu(object):
 
     def __init__(self, root, logger, svcname, rohost, port, monport, hostname):
@@ -75,13 +76,14 @@ class AnaMenu(object):
         self.fitsviewer_monport = monport
         self.propid = None
         self.propfile = None
+
         self.logger = logger
         self.__init_propid_entry()
+
         #self.__set_propfile()
         self.title_suffix = "\u3041\u306A \u3081\u306C"  # あな めぬ
 
         self.action_list = [
-            ('COMICS', self.launch_comics),
             ('FOCAS', self.launch_focas),
             ('IRCS', self.launch_ircs),
             ('HDS', self.launch_hds),
@@ -110,6 +112,8 @@ class AnaMenu(object):
         fr.set_widget(tb0)
         entry = Widgets.TextEntry()
         self.w.propid = entry
+        if self.propid is not None:
+            entry.set_text(self.propid)
         tb0.add_widget(entry)
         a = tb0.add_action('Set')
         a.add_callback('activated', self.set_propid)
@@ -140,17 +144,12 @@ class AnaMenu(object):
                            iconpath=os.path.join(icondir, 'view-file.png'),
                            iconsize=(24, 24))
         a.add_callback('activated', lambda w: self.launch_fits_viewer())
-        a.set_tooltip("Start Gen2 FITS viewer")
+        a.set_tooltip("Start ginga FITS viewer")
         a = tb1.add_action('Ds9', toggle=False,
                            iconpath=os.path.join(icondir, 'view-file.png'),
                            iconsize=(24, 24))
         a.add_callback('activated', lambda w: self.launch_ds9())
         a.set_tooltip("Start ds9 FITS viewer")
-        a = tb1.add_action('Skycat', toggle=False,
-                           iconpath=os.path.join(icondir, 'view-file.png'),
-                           iconsize=(24, 24))
-        a.add_callback('activated', lambda w: self.launch_skycat())
-        a.set_tooltip("Start skycat FITS viewer")
 
         for name, action in self.action_list:
             a = tb2.add_action(name, toggle=False,
@@ -203,7 +202,7 @@ class AnaMenu(object):
     def __init_propid_entry(self):
         self.get_propid()
 
-        if self.propid is not None:
+        if self.propid is not None and self.w.has_key('propid'):
             #self.__set_propfile()
             #self.write_propid()
             self.w.propid.set_text(self.propid)
@@ -272,7 +271,7 @@ class AnaMenu(object):
     def get_gen2home(self):
         try:
             gen2home = os.environ['GEN2HOME']
-        except OSError:
+        except KeyError:
             gen2home = '/home/gen2/Git/python/Gen2'
         finally:
             return gen2home
@@ -304,12 +303,6 @@ class AnaMenu(object):
         args = shlex.split(command_line)
         self.__execute(cmd=args, procname='statmon')
 
-    def launch_skycat(self):
-        ''' skycat '''
-        command_line = "wish8.4 /usr/local/lib/skycat3.1.2/main.tcl"
-        args = shlex.split(command_line)
-        self.__execute(cmd=args, procname='skycat')
-
     def launch_ds9(self):
         ''' ds9 '''
         command_line = "/usr/local/bin/ds9 -port %s" %os.environ['DS9PORT']
@@ -318,7 +311,9 @@ class AnaMenu(object):
 
     def launch_terminal(self):
         ''' gnome-terminal '''
-        self.__execute(cmd=["gnome-terminal",], procname='gnome-terminal')
+        command_line = "dbus-launch gnome-terminal"
+        args = shlex.split(command_line)
+        self.__execute(cmd=args, procname='gnome-terminal')
 
     @property
     def workdir(self):
@@ -386,13 +381,6 @@ class AnaMenu(object):
         obcp = 'OBCP17'
         cmd = "/home/moircs01/moircs/moircs.ana %s %s %s %s"
         insname = 'MOIRCS'
-        self.__execute_obcp(obcp, cmd, insname)
-
-    def launch_comics(self):
-        self.logger.debug('starting comics....')
-        obcp = 'OBCP07'
-        cmd = "/home/comics01/comics/comics.ana %s %s %s %s"
-        insname = 'COMICS'
         self.__execute_obcp(obcp, cmd, insname)
 
 
