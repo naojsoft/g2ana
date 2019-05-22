@@ -25,7 +25,7 @@ if __name__ == "__main__":
                       help="Base service name is ANA")
 
     optprs.add_option("--rohost", dest="rohost", metavar="ROHOST",
-                      default="g2ins1.sum.subaru.nao.ac.jp",
+                      default="localhost",
                       help="Specify rohost")
 
     optprs.add_option("--logname", dest="logname", metavar="LOGNAME",
