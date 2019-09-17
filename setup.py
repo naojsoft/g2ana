@@ -22,9 +22,11 @@ setup(
     url = "http://naojsoft.github.com/g2ana",
     packages = ['g2ana',
                 'g2ana.icons',
+                'g2ana.plugins',
                 ],
     package_data = {'g2ana.icons':['*.png']},
-    scripts = ['scripts/anamenu', 'scripts/datasink', 'scripts/cleanup_fits'],
+    scripts = ['scripts/anamenu', 'scripts/anaview',
+               'scripts/datasink', 'scripts/cleanup_fits'],
     classifiers = [
         "License :: OSI Approved :: BSD License",
         "Operating System :: MacOS :: MacOS X",
