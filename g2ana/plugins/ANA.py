@@ -58,8 +58,9 @@ class ANA(GingaPlugin.GlobalPlugin):
 
         # find out our hostname
         self.host = ro.get_myhost(short=True)
+        self.ro_host = 'g2ins1.sum.subaru.nao.ac.jp'
 
-        ro.init([self.host])
+        ro.init([self.ro_host])
 
         # construct our service name
         self.svcname = "ANA-{}-{}".format(self.propid, self.host)
@@ -68,13 +69,14 @@ class ANA(GingaPlugin.GlobalPlugin):
         self.insconfig = INSconfig.INSdata()
 
         self.fifo_name = None
-        self.fifo_fd
-        self.fifo_sleep = 1.0
+        self.fifo_fd = None
+        self.fifo_sleep = 0.5
 
         # make a name and port for our monitor
         mymonname = '{}.mon'.format(self.svcname)
         self.monport = 10000 + int(self.propid[-3:])
         self.port = 9000 + int(self.propid[-3:])
+        #self.channels = ['g2task']
 
         threadPool = self.fv.get_threadPool()
 
@@ -95,11 +97,11 @@ class ANA(GingaPlugin.GlobalPlugin):
 
         # start_server is necessary if we are subscribing, but not if only
         # publishing
-        self.logger.info("starting monitor on port {}".format(self.monport))
-        self.monitor.start_server(wait=True, port=self.monport)
+        #self.logger.info("starting monitor on port {}".format(self.monport))
+        #self.monitor.start_server(wait=True, port=self.monport)
 
         # subscribe our monitor to the central monitor hub
-        self.monitor.subscribe_remote(self.monitor_name, self.channels, {})
+        #self.monitor.subscribe_remote(self.monitor_name, self.channels, {})
         # publishing for remote command executions
         self.monitor.publish_to('monitor', ['g2task'], {})
 
@@ -129,6 +131,7 @@ class ANA(GingaPlugin.GlobalPlugin):
         self.logger.info("made fifo ({})".format(self.fifo_path))
 
         self.fv.nongui_do(self._load_files, self.fv.ev_quit)
+        self.logger.info("ANA plugin started.")
 
     def stop(self):
         self.logger.info("ANA plugin shutting down...")

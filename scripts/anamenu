@@ -20,29 +20,13 @@ if __name__ == "__main__":
                       action="store_true",
                       help="Enter the pdb debugger on main()")
 
-    optprs.add_option("--svcname", dest="svcname", metavar="SVCNAME",
-                      default="ANA",
-                      help="Base service name is ANA")
-
     optprs.add_option("--rohost", dest="rohost", metavar="ROHOST",
                       default="localhost",
                       help="Specify rohost")
 
-    optprs.add_option("--logname", dest="logname", metavar="LOGNAME",
-                      default="anamenu.log",
-                      help="Specify logfile name [anamenu | ana2menu | hanamenu | sbanamenu]")
-
-    optprs.add_option("--port", dest="port", metavar="PORT",
-                      default=50000,
-                      help="Specify port numer")
-
-    optprs.add_option("--monport", dest="monport", metavar="MONPORT",
-                      default=50001,
-                      help="Specify mon-port numer")
-
-    optprs.add_option("--ds9port", dest="ds9port", metavar="DS9PORT",
-                      default=50002,
-                      help="Specify ds9-port numer")
+    optprs.add_option("--geometry", dest="geometry", 
+                      default="+100+100",
+                      help="Specify placement of window")
 
     optprs.add_option("--profile", dest="profile", action="store_true",
                       default=False,

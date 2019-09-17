@@ -4,13 +4,12 @@
 #
 import sys
 import os
-# NOTE: need to set here so that ginga.util.paths picks it up first
-os.environ['GINGA_HOME'] = os.path.join(os.environ['CONFHOME'], 'anaview')
 
 from ginga.rv import main as g_main
 
 from ginga.misc.Bunch import Bunch
 
+import g2ana
 
 def get_plugin_spec(name):
     l_name = name.lower()
@@ -26,7 +25,7 @@ def add_plugin_spec(spec):
 if __name__ == "__main__":
     # Tweak the sys.path here if you are loading plugins from some
     # area outside your PYTHONPATH
-    moduleHome = os.path.split(sys.modules[__name__].__file__)[0]
+    moduleHome = os.path.split(g2ana.__file__)[0]
     sys.path.insert(0, moduleHome)
     pluginHome = os.path.join(moduleHome, 'plugins')
     sys.path.insert(0, pluginHome)

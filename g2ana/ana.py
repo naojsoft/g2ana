@@ -14,6 +14,7 @@ import getpass
 from ginga import toolkit
 toolkit.use('qt5')
 from ginga.gw import Widgets
+from ginga.util import paths
 
 from g2base import ssdlog, Bunch
 from g2base.remoteObjects import remoteObjects as ro
@@ -62,7 +63,7 @@ class Process(object):
 
 class AnaMenu(object):
 
-    def __init__(self, root, logger, rohost, port, monport, hostname):
+    def __init__(self, root, logger, rohost, hostname):
 
         # holds widgets of interest
         self.w = Bunch.Bunch()
@@ -72,12 +73,8 @@ class AnaMenu(object):
         self.process = Process(logger)
         self.hostname = hostname
         self.rohost = rohost
-        self.fitsviewer_port = port
-        self.fitsviewer_monport = monport
         self.propid = None
         self.propfile = None
-
-        self.logger = logger
 
         self.__init_propid_entry()
 
@@ -121,7 +118,7 @@ class AnaMenu(object):
             entry.set_text(self.propid)
         tb0.add_widget(entry)
         a = tb0.add_action('Set')
-        a.add_callback('activated', self.set_propid)
+        a.add_callback('activated', self.set_propid_cb)
         vbox.add_widget(fr)
 
         # buttons for Gen2 application
@@ -184,13 +181,8 @@ class AnaMenu(object):
     def __set_propfile(self):
 
         filename = '.ana_propid'
-        try:
-            homedir = os.environ['HOME']
-        except Exception:
-            homedir = '/home/%s' % getpass.getuser()
-        finally:
-            self.propfile = os.path.join(homedir, filename)
-            self.logger.debug('propfile={}'.format(self.propfile))
+        self.propfile = os.path.join(paths.home, filename)
+        self.logger.debug('propfile={}'.format(self.propfile))
 
 
     def expand_log(self, expander):
@@ -214,8 +206,8 @@ class AnaMenu(object):
         # for now, handle both u and o account. note: eventually, o-account only
         m = re.search(r'(?<=u|o)\d{5}', oid)
         if m:
-            self.propid = 'o%s' % m.group(0)
-            self.logger.debug('propid<%s>' %self.propid)
+            propid = 'o%s' % m.group(0)
+            self.set_propid(propid)
 
     def quit(self):
         self.logger.debug('quitting.')
@@ -232,15 +224,28 @@ class AnaMenu(object):
             m = None
         return m
 
-    def set_propid(self, w):
+    def set_propid_cb(self, w):
         propid = self.w.propid.get_text().strip()
-        if self.is_propid(propid)
-            self.propid = propid
-            self.__set_propfile()
-            self.write_propid()
-        else:
+        if not self.is_propid(propid):
             self.w.msgbar.set_message("Bad propid: '%s'" % (propid))
             w.set_text(self.propid)
+            return
+
+        self.set_propid(propid)
+        self.__set_propfile()
+        self.write_propid()
+
+    def set_propid(self, propid):
+        if not self.is_propid(propid):
+            raise ValueError("PROP-ID ({}) does not have expected format (oNNMMM)".format(propid))
+
+        self.propid = propid
+
+        port_sfx = int(self.propid[-3:])
+        os.environ['IMTDEV'] = "inet:%d" % (42000 + port_sfx)
+        os.environ['IMTDEV2'] = "inet:%d" % (43000 + port_sfx)
+        os.environ['DS9PORT'] = '%d' % (44000 + port_sfx)
+        self.logger.debug('propid<%s>' % self.propid)
 
     def __execute(self, cmd, procname):
         ''' execute applications '''
@@ -265,7 +270,8 @@ class AnaMenu(object):
 
     @property
     def loghome(self):
-        return os.path.join('/home', self.propid)
+        logdir = os.path.join(paths.home, '.ana_logs')
+        return logdir
 
     def launch_fits_viewer(self):
         ''' fits viewer '''
@@ -273,7 +279,7 @@ class AnaMenu(object):
         #fitshome = os.path.join(self.get_gen2home(), 'fitsview')
         #command_line = "{0}/fitsview.py -t qt5 --modules=ANA --plugins=Ana_Confirmation,Ana_UserInput,MESOffset  --loglevel=debug --log={5}/{6}_fitsview.log".format(fitshome, self.loghome, self.hostname)
 
-        command_line = "anaview -t qt5  --loglevel=debug --log={5}/anaview_{6}.log".format(self.loghome, self.hostname)
+        command_line = "anaview -t qt5  --loglevel=20 --log={0}/anaview_{1}.log".format(self.loghome, self.hostname)
 
         args = shlex.split(command_line)
         self.__execute(cmd=args, procname='fits viewer')
@@ -284,14 +290,19 @@ class AnaMenu(object):
         os.environ['RO_NAMES'] = self.rohost
         gen2home = self.get_gen2home()
 
-        command_line = "{0}/statmon/statmon.py --monport=34945 --loglevel=10 --log={1}/statmon_{2}.log".format(gen2home, self.loghome, self.hostname)
+        monport = 34000 + int(self.propid[-3:])
+        command_line = "{0}/statmon/statmon.py --monport={1} --loglevel=10 --log={2}/statmon_{3}.log".format(gen2home, monport, self.loghome, self.hostname)
         args = shlex.split(command_line)
         self.__execute(cmd=args, procname='statmon')
 
     def launch_ds9(self):
         ''' ds9 '''
-        command_line = "/usr/local/bin/ds9 -port %s" %os.environ['DS9PORT']
+        ds9port = os.environ['DS9PORT']
+        command_line = "/usr/local/bin/ds9 -port {}".format(ds9port)
         args = shlex.split(command_line)
+
+        self.logger.debug('ds9_port={}'.format(ds9port))
+
         self.__execute(cmd=args, procname='ds9')
 
     def launch_terminal(self):
@@ -357,25 +368,35 @@ class AnaMenu(object):
         insname = 'MOIRCS'
         self.__execute_obcp(obcp, cmd, insname)
 
+    def set_pos(self, x, y):
+        self.w.root.move(x, y)
 
-def get_portnum(hostname, options, logger):
+    def set_size(self, wd, ht):
+        self.w.root.resize(wd, ht)
 
-    inc = 10
+    def set_geometry(self, geometry):
+        # translation of X window geometry specification WxH+X+Y
+        coords = geometry.replace('+', ' +')
+        coords = coords.replace('-', ' -')
+        coords = coords.split()
+        if 'x' in coords[0]:
+            # spec includes dimensions
+            dim = coords[0]
+            coords = coords[1:]
+        else:
+            # spec is position only
+            dim = None
 
-    ports = {'sum01': (options.port, options.monport , options.ds9port),
-             'sum02': (options.port+inc , options.monport+inc , options.ds9port+inc),
-             'hilo01': (options.port+inc*2 , options.monport+inc*2 , options.ds9port+inc*2),
-             'mtk01': (options.port+inc*3 , options.monport+inc*3 , options.ds9port+inc*3), }
+        if dim is not None:
+            # user specified dimensions
+            dim = [int(x) for x in dim.split('x')]
+            self.set_size(*dim)
 
-    try:
-        port, monport, ds9port = ports[hostname]
-    except Exception as e:
-        port = options.port+inc*10
-        monport = options.monport+inc*10
-        ds9port = options.ds9port+inc*10
+        if len(coords) > 0:
+            # user specified position
+            coords = [int(x) for x in coords]
+            self.set_pos(*coords)
 
-    logger.debug('port=%d monport=%d ds9port=%d' %(port, monport, ds9port))
-    return (port, monport, ds9port)
 
 def get_svcname(hostname, propid, logger):
 
@@ -388,21 +409,15 @@ def main(options, args):
 
     hostname = args[0]
 
+    logdir = os.path.join(paths.home, '.ana_logs')
+    if not os.path.isdir(logdir):
+        os.mkdir(logdir)
     if not options.logstderr:
-        options.logfile = os.path.join(os.environ['HOME'],
-                                       '%s_anamenu.log' % hostname)
+        options.logfile = os.path.join(logdir,
+                                       'anamenu_{}.log'.format(hostname))
     logger = ssdlog.make_logger(hostname, options)
 
-    port, monport, ds9port = get_portnum(hostname, options, logger)
-
     rohost = options.rohost
-
-    os.environ['IMTDEV'] = "inet:%d" % ds9port
-    os.environ['IMTDEV2'] = "inet:%d" % (ds9port+1)
-    os.environ['DS9PORT'] = '%d' % ds9port
-
-    logger.debug('fitsviewer port=%s monport=%s ds9_port=%s' % (
-        port, monport, ds9port))
 
     def SigHandler(signum, frame):
         """Signal handler for all unexpected conditions."""
@@ -419,9 +434,10 @@ def main(options, args):
     root = app.make_window(title='ANA Menu')
 
     try:
-        ana = AnaMenu(root, logger, rohost, port, monport, hostname)
+        ana = AnaMenu(root, logger, rohost, hostname)
         ana.setup_ui()
         root.show()
+        ana.set_geometry(options.geometry)
 
         app.mainloop()
 
