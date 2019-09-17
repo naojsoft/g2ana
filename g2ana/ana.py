@@ -37,6 +37,7 @@ class Process(object):
 
         self.logger.debug('executing %s' %args)
         try:
+
             process = subprocess.Popen(args)
         except Exception as e:
             res = '%s' %str(e)
@@ -61,7 +62,7 @@ class Process(object):
 
 class AnaMenu(object):
 
-    def __init__(self, root, logger, svcname, rohost, port, monport, hostname):
+    def __init__(self, root, logger, rohost, port, monport, hostname):
 
         # holds widgets of interest
         self.w = Bunch.Bunch()
@@ -70,7 +71,6 @@ class AnaMenu(object):
         self.logger = logger
         self.process = Process(logger)
         self.hostname = hostname
-        self.svcname = svcname
         self.rohost = rohost
         self.fitsviewer_port = port
         self.fitsviewer_monport = monport
@@ -78,10 +78,15 @@ class AnaMenu(object):
         self.propfile = None
 
         self.logger = logger
+
         self.__init_propid_entry()
 
+        self.svcname = get_svcname(self.hostname, self.propid, self.logger)
+
         #self.__set_propfile()
-        self.title_suffix = "\u3041\u306A \u3081\u306C"  # あな めぬ
+        #self.title_suffix = "\u3041\u306A \u3081\u306C"  # あな めぬ
+        title_suffix = "あなめにゅー"
+        self.title_suffix = title_suffix.encode(encoding="utf-8").decode()
 
         self.action_list = [
             ('FOCAS', self.launch_focas),
@@ -102,7 +107,7 @@ class AnaMenu(object):
         item.add_callback('activated', lambda w: self.quit())
         vbox.add_widget(menubar, stretch=0)
 
-        lbl = Widgets.Label(self.svcname + " " + self.title_suffix)
+        lbl = Widgets.Label("ANA " + self.title_suffix)
         lbl.set_font('sans', 24)
         vbox.add_widget(lbl, stretch=0)
         self.w.title = lbl
@@ -155,9 +160,7 @@ class AnaMenu(object):
             a = tb2.add_action(name, toggle=False,
                                iconpath=os.path.join(icondir, 'camera.png'),
                                iconsize=(24, 24))
-            def launch_inst(w):
-                action()
-            a.add_callback('activated', launch_inst)
+            a.add_callback('activated', action)
             a.set_tooltip("Start data analysis package for %s" % (name))
 
         a = tb3.add_action('Terminal', toggle=False,
@@ -172,19 +175,22 @@ class AnaMenu(object):
         a.set_tooltip("Start Gen2 status monitor")
 
         self.w.root.set_widget(vbox)
+        self.w.root.add_callback('close', lambda w: self.quit())
 
+        self.__init_propid_entry()
+        #self.__set_propfile()
         self.logger.debug("ana menu gui done")
 
     def __set_propfile(self):
 
-        filename = 'propid'
+        filename = '.ana_propid'
         try:
             homedir = os.environ['HOME']
         except Exception:
             homedir = '/home/%s' % getpass.getuser()
         finally:
             self.propfile = os.path.join(homedir, filename)
-            self.logger.debug('propfile=%s' %self.propfile)
+            self.logger.debug('propfile={}'.format(self.propfile))
 
 
     def expand_log(self, expander):
@@ -193,27 +199,22 @@ class AnaMenu(object):
             expander.remove(expander.child)
             self.window.resize(self.window_width, self.window_height)
         else:
-            expander.add(self.sw_expander)            #expander.add(self.textview_log)
-
-#            iter=self.buffer_log.get_start_iter()
-#            self.buffer_log.insert(iter, 'test... %d\n' %self.c)
-#            self.c+=1
+            expander.add(self.sw_expander)
+            self.c+=1
 
     def __init_propid_entry(self):
         self.get_propid()
 
         if self.propid is not None and self.w.has_key('propid'):
-            #self.__set_propfile()
-            #self.write_propid()
             self.w.propid.set_text(self.propid)
 
     def get_propid(self):
         oid = getpass.getuser()
-        self.logger.debug('user=%s' % oid)
+        self.logger.debug('user={}'.format(oid))
         # for now, handle both u and o account. note: eventually, o-account only
         m = re.search(r'(?<=u|o)\d{5}', oid)
         if m:
-            self.propid = 'o%s' %m.group(0)
+            self.propid = 'o%s' % m.group(0)
             self.logger.debug('propid<%s>' %self.propid)
 
     def quit(self):
@@ -233,8 +234,7 @@ class AnaMenu(object):
 
     def set_propid(self, w):
         propid = self.w.propid.get_text().strip()
-        res = self.is_propid(propid)
-        if res:
+        if self.is_propid(propid)
             self.propid = propid
             self.__set_propfile()
             self.write_propid()
@@ -244,15 +244,7 @@ class AnaMenu(object):
 
     def __execute(self, cmd, procname):
         ''' execute applications '''
-        ## iter = self.buffer_log.get_start_iter()
-
         error = self.process.execute(cmd)
-
-        ## if not error:
-        ##     self.buffer_log.insert(iter, '%s started...\n' %(procname))
-        ## else:
-        ##     self.logger.error('error: launching %s.. %s'  %(procname, error))
-        ##     self.buffer_log.insert(iter, 'error: %s. %s\n' %(procname, error))
 
     def remove_propid(self):
         try:
@@ -269,12 +261,7 @@ class AnaMenu(object):
             self.logger.error('error: writing propid. %s' %str(e))
 
     def get_gen2home(self):
-        try:
-            gen2home = os.environ['GEN2HOME']
-        except KeyError:
-            gen2home = '/home/gen2/Git/python/Gen2'
-        finally:
-            return gen2home
+        return os.environ['GEN2HOME']
 
     @property
     def loghome(self):
@@ -283,13 +270,11 @@ class AnaMenu(object):
     def launch_fits_viewer(self):
         ''' fits viewer '''
 
-        #fitshome = '/home/gen2/Git/Fitsview'
-        fitshome = os.path.join(self.get_gen2home(), 'fitsview')
+        #fitshome = os.path.join(self.get_gen2home(), 'fitsview')
+        #command_line = "{0}/fitsview.py -t qt5 --modules=ANA --plugins=Ana_Confirmation,Ana_UserInput,MESOffset  --loglevel=debug --log={5}/{6}_fitsview.log".format(fitshome, self.loghome, self.hostname)
 
-        command_line = "{0}/fitsview.py --rohosts={1} --modules=ANA --plugins=Ana_Confirmation,Ana_UserInput,MESOffset --svcname={2} --port={3} --monport={4} --loglevel=debug --log={5}/{6}fitsviewer.log".format(fitshome, self.rohost, self.svcname, self.fitsviewer_port, self.fitsviewer_monport, self.loghome, self.hostname)
+        command_line = "anaview -t qt5  --loglevel=debug --log={5}/anaview_{6}.log".format(self.loghome, self.hostname)
 
-        # somebody broke astropy  &*%^^&%^&^&*%!!!
-        command_line = "/home/gen2/bin/start_fitsview.sh"
         args = shlex.split(command_line)
         self.__execute(cmd=args, procname='fits viewer')
 
@@ -299,7 +284,7 @@ class AnaMenu(object):
         os.environ['RO_NAMES'] = self.rohost
         gen2home = self.get_gen2home()
 
-        command_line = "{0}/statmon/statmon.py --monport=34945 --loglevel=0".format(gen2home)
+        command_line = "{0}/statmon/statmon.py --monport=34945 --loglevel=10 --log={1}/statmon_{2}.log".format(gen2home, self.loghome, self.hostname)
         args = shlex.split(command_line)
         self.__execute(cmd=args, procname='statmon')
 
@@ -311,9 +296,10 @@ class AnaMenu(object):
 
     def launch_terminal(self):
         ''' gnome-terminal '''
-        command_line = "dbus-launch gnome-terminal"
+        #command_line = "dbus-launch gnome-terminal"
+        command_line = "dbus-launch konsole"
         args = shlex.split(command_line)
-        self.__execute(cmd=args, procname='gnome-terminal')
+        self.__execute(cmd=args, procname='konsole')
 
     @property
     def workdir(self):
@@ -326,10 +312,7 @@ class AnaMenu(object):
     def __execute_obcp(self, obcp, cmd, insname=None):
         ''' execute obcp '''
 
-        iter = self.buffer_log.get_start_iter()
-
         if not self.is_propid(self.propid):
-            self.buffer_log.insert(iter, 'error: propid=%s\n' %str(self.propid))
             self.logger.error('error: propid=%s' %str(self.propid))
             return
 
@@ -340,27 +323,18 @@ class AnaMenu(object):
 
         error = self.process.execute(args)
         if not error:
-            self.buffer_log.insert(iter, 'starting %s...\n' %(insname))
+            pass
         else:
-            self.buffer_log.insert(iter, 'error: %s. %s\n' %(insname, error))
             self.logger.error('error: launching %s.. %s'  %(insname, error))
 
-    def launch_spcam(self):
-        self.logger.debug('starting spcam....')
-
-        obcp = 'OBCP08'
-        cmd = "/home/spcam01/suprime/suprime.ana %s %s %s %s"
-        insname = 'SPCAM'
-        self.__execute_obcp(obcp, cmd, insname)
-
-    def launch_hds(self):
+    def launch_hds(self, w):
         self.logger.debug('starting hds....')
         obcp = 'OBCP06'
         cmd = "/home/hds01/hds.ana %s %s %s %s"
         insname = 'HDS'
         self.__execute_obcp(obcp, cmd, insname)
 
-    def launch_ircs(self):
+    def launch_ircs(self, w):
         self.logger.debug('starting ircs....')
 
         obcp = 'OBCP01'
@@ -368,7 +342,7 @@ class AnaMenu(object):
         insname = 'IRCS'
         self.__execute_obcp(obcp, cmd, insname)
 
-    def launch_focas(self):
+    def launch_focas(self, w):
         self.logger.debug('starting focas....')
 
         obcp = 'OBCP05'
@@ -376,7 +350,7 @@ class AnaMenu(object):
         insname = 'FOCAS'
         self.__execute_obcp(obcp, cmd, insname)
 
-    def launch_moircs(self):
+    def launch_moircs(self, w):
         self.logger.debug('starting moircs....')
         obcp = 'OBCP17'
         cmd = "/home/moircs01/moircs/moircs.ana %s %s %s %s"
@@ -403,17 +377,11 @@ def get_portnum(hostname, options, logger):
     logger.debug('port=%d monport=%d ds9port=%d' %(port, monport, ds9port))
     return (port, monport, ds9port)
 
-def get_svcname(hostname, logger):
+def get_svcname(hostname, propid, logger):
 
-    svcnames = {'sum01': 'ANA', 'sum02': 'ANA2',
-                'hilo01':'ANA3', 'mtk01':'MTK'}
-
-    try:
-        svcname = svcnames[hostname]
-    except Exception as e:
-        svcname = 'ANA10'
-
-    logger.debug('svcname=%s' %svcname)
+    hostname = hostname.split('.')[0]
+    svcname = "ANA-{}-{}".format(propid, hostname)
+    logger.debug('svcname={}'.format(svcname))
     return svcname
 
 def main(options, args):
@@ -422,10 +390,8 @@ def main(options, args):
 
     if not options.logstderr:
         options.logfile = os.path.join(os.environ['HOME'],
-                                       '%s-menu.log' % hostname)
+                                       '%s_anamenu.log' % hostname)
     logger = ssdlog.make_logger(hostname, options)
-
-    svcname = get_svcname(hostname, logger)
 
     port, monport, ds9port = get_portnum(hostname, options, logger)
 
@@ -435,8 +401,8 @@ def main(options, args):
     os.environ['IMTDEV2'] = "inet:%d" % (ds9port+1)
     os.environ['DS9PORT'] = '%d' % ds9port
 
-    logger.debug('svcname=%s fitsviewer port=%s monport=%s ds9_port=%s' % (
-        svcname, port, monport, ds9port))
+    logger.debug('fitsviewer port=%s monport=%s ds9_port=%s' % (
+        port, monport, ds9port))
 
     def SigHandler(signum, frame):
         """Signal handler for all unexpected conditions."""
@@ -453,7 +419,7 @@ def main(options, args):
     root = app.make_window(title='ANA Menu')
 
     try:
-        ana = AnaMenu(root, logger, svcname, rohost, port, monport, hostname)
+        ana = AnaMenu(root, logger, rohost, port, monport, hostname)
         ana.setup_ui()
         root.show()
 
