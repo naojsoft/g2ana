@@ -104,9 +104,16 @@ class AnaMenu(object):
         item.add_callback('activated', lambda w: self.quit())
         vbox.add_widget(menubar, stretch=0)
 
+        hbox = Widgets.HBox()
+        hbox.set_spacing(2)
+        icn = Widgets.Image()
+        icn.load_file(os.path.join(icondir, 'sumo.png'))
+        hbox.add_widget(icn, stretch=0)
+
         lbl = Widgets.Label("ANA " + self.title_suffix)
         lbl.set_font('sans', 24)
-        vbox.add_widget(lbl, stretch=0)
+        hbox.add_widget(lbl, stretch=1)
+        vbox.add_widget(hbox, stretch=0)
         self.w.title = lbl
 
         tb0 = Widgets.Toolbar(orientation='horizontal')
