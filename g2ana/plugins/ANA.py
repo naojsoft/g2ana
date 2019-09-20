@@ -1,6 +1,7 @@
 #
 # ANA.py -- ANA plugin for Ginga FITS viewer
 #
+
 # Takeshi Inagaki
 # Eric Jeschke (eric@naoj.org)
 #
@@ -10,9 +11,12 @@ import select
 import re, time
 import errno
 
+import numpy as np
+
 from ginga import GingaPlugin
 from ginga import AstroImage
-from ginga.util import wcs, loader, paths
+from ginga.misc import Bunch, Future
+from ginga.util import loader, paths
 
 # g2cam imports
 from g2base.remoteObjects import remoteObjects as ro
@@ -58,7 +62,7 @@ class ANA(GingaPlugin.GlobalPlugin):
 
         # find out our hostname
         self.host = ro.get_myhost(short=True)
-        self.ro_host = 'g2ins1.sum.subaru.nao.ac.jp'
+        self.ro_host = os.environ['GEN2HOST']
 
         ro.init([self.ro_host])
 

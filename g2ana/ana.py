@@ -248,10 +248,11 @@ class AnaMenu(object):
 
         self.propid = propid
 
-        port_sfx = int(self.propid[-3:])
-        os.environ['IMTDEV'] = "inet:%d" % (42000 + port_sfx)
-        os.environ['IMTDEV2'] = "inet:%d" % (43000 + port_sfx)
-        os.environ['DS9PORT'] = '%d' % (44000 + port_sfx)
+        port_sfx = int(self.propid[-3:]) * 5
+        ds9_port = 22000 + port_sfx
+        os.environ['IMTDEV'] = "inet:%d" % (ds9_port)
+        os.environ['IMTDEV2'] = "inet:%d" % (ds9_port + 1)
+        os.environ['DS9PORT'] = '%d' % (ds9_port)
         self.logger.debug('propid<%s>' % self.propid)
 
     def __execute(self, cmd, procname):
@@ -314,10 +315,10 @@ class AnaMenu(object):
 
     def launch_terminal(self):
         ''' gnome-terminal '''
-        #command_line = "dbus-launch gnome-terminal"
-        command_line = "dbus-launch konsole"
+        command_line = "dbus-launch gnome-terminal"
+        #command_line = "dbus-launch konsole"
         args = shlex.split(command_line)
-        self.__execute(cmd=args, procname='konsole')
+        self.__execute(cmd=args, procname='gnome-terminal')
 
     @property
     def workdir(self):
