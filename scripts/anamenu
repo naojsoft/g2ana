@@ -2,7 +2,7 @@
 #
 
 import sys
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 from g2base import ssdlog
 from g2ana.ana import main
@@ -11,32 +11,29 @@ from g2ana.ana import main
 if __name__ == "__main__":
 
     # Parse command line options
+    argprs = ArgumentParser(description="Start up the analysis menu.")
 
-    usage = "usage: %prog [options] [file] ..."
-    optprs = OptionParser(usage=usage, version=('%prog'))
+    argprs.add_argument("--debug", dest="debug", default=False,
+                        action="store_true",
+                        help="Enter the pdb debugger on main()")
 
+    argprs.add_argument("--rohost", dest="rohost", metavar="ROHOST",
+                        default="localhost",
+                        help="Specify rohost")
 
-    optprs.add_option("--debug", dest="debug", default=False,
-                      action="store_true",
-                      help="Enter the pdb debugger on main()")
+    argprs.add_argument("--geometry", dest="geometry",
+                        default="+100+100",
+                        help="Specify placement of window")
 
-    optprs.add_option("--rohost", dest="rohost", metavar="ROHOST",
-                      default="localhost",
-                      help="Specify rohost")
+    argprs.add_argument("--profile", dest="profile", action="store_true",
+                        default=False,
+                        help="Run the profiler on main()")
+    ssdlog.addlogopts(argprs)
 
-    optprs.add_option("--geometry", dest="geometry", 
-                      default="+100+100",
-                      help="Specify placement of window")
-
-    optprs.add_option("--profile", dest="profile", action="store_true",
-                      default=False,
-                      help="Run the profiler on main()")
-    ssdlog.addlogopts(optprs)
-
-    (options, args) = optprs.parse_args(sys.argv[1:])
+    (options, args) = argprs.parse_known_args(sys.argv[1:])
 
     if len(args) != 1:
-        optprs.error("incorrect number of arguments")
+        argprs.error("incorrect number of arguments")
 
     # Are we debugging this?
     if options.debug:

@@ -284,10 +284,7 @@ class AnaMenu(object):
     def launch_fits_viewer(self):
         ''' fits viewer '''
 
-        #fitshome = os.path.join(self.get_gen2home(), 'fitsview')
-        #command_line = "{0}/fitsview.py -t qt5 --modules=ANA --plugins=Ana_Confirmation,Ana_UserInput,MESOffset  --loglevel=debug --log={5}/{6}_fitsview.log".format(fitshome, self.loghome, self.hostname)
-
-        command_line = "anaview -t qt5  --loglevel=20 --log={0}/anaview_{1}.log".format(self.loghome, self.hostname)
+        command_line = "anaview -t qt5 --nosplash --loglevel=20 --log={0}/anaview_{1}.log".format(self.loghome, self.hostname)
 
         args = shlex.split(command_line)
         self.__execute(cmd=args, procname='fits viewer')
