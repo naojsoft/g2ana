@@ -25,6 +25,13 @@ from g2base.remoteObjects import Monitor
 from g2base.astro.frame import Frame
 import g2cam.INS as INSconfig
 
+have_inotify = False
+try:
+    import inotify.adapters
+    have_inotify = True
+except ImportError:
+    pass
+
 homedir = paths.home
 propid_file = os.path.join(homedir, '.ana_propid')
 
@@ -72,9 +79,7 @@ class ANA(GingaPlugin.GlobalPlugin):
         # for looking up instrument names
         self.insconfig = INSconfig.INSdata()
 
-        self.fifo_name = None
-        self.fifo_fd = None
-        self.fifo_sleep = 0.5
+        self.data_dir = os.path.join('/data', self.propid)
 
         # make a name and port for our monitor
         mymonname = '{}.mon'.format(self.svcname)
@@ -125,16 +130,11 @@ class ANA(GingaPlugin.GlobalPlugin):
         self.logger.info("starting ANA service on port {}".format(self.port))
         self.viewsvc.ro_start()
 
-        self.logger.info("making FIFO..")
-        self.fifo_path = os.path.join('/tmp', ".fits_" + self.propid + "_fifo")
-        if not os.path.exists(self.fifo_path):
-            os.mkfifo(self.fifo_path, 0o777)
-        os.system("chmod o+w {}".format(self.fifo_path))
-
-        self.fifo_fd = os.open(self.fifo_path, os.O_RDONLY | os.O_NONBLOCK)
-        self.logger.info("made fifo ({})".format(self.fifo_path))
-
-        self.fv.nongui_do(self._load_files, self.fv.ev_quit)
+        if not have_inotify:
+            self.logger.warning("'inotify' package needs to be installed to "
+                                "monitor for files to be loaded")
+        else:
+            self.fv.nongui_do(self.watch_loop, self.fv.ev_quit)
         self.logger.info("ANA plugin started.")
 
     def stop(self):
@@ -142,55 +142,19 @@ class ANA(GingaPlugin.GlobalPlugin):
         self.viewsvc.ro_stop(wait=True)
         self.monitor.stop_server(wait=True)
         self.monitor.stop(wait=True)
-
-        os.close(self.fifo_fd)
-        if self.propid is not None:
-            os.remove(self.fifo_path)
-
         self.logger.info("ANA plugin stopped.")
 
-    def _load_files(self, ev_quit):
-
-        self.logger.info("starting load_files()..")
-        bufsize = 1024
-
-        while not ev_quit.is_set():
-            self.logger.debug("pinging fifo...")
-            buf = None
-            try:
-                buf = os.read(self.fifo_fd, bufsize)
-
-            except OSError as err:
-                if err.errno == errno.EAGAIN or err.errno == errno.EWOULDBLOCK:
-                    pass
-                else:
-                    raise
-
-            self.logger.debug("after pinging fifo...")
-            if buf is not None:
-                lines = buf.strip().decode().split('\n')
-                for line in lines:
-                    line = line.strip()
-                    if len(line) == 0 or not '|' in line:
-                        continue
-                    propid, filepath = line.split('|')
-                    self.logger.debug("propid: {}, path: '{}'".format(propid, filepath))
-                    if propid != self.propid:
-                        self.logger.debug("propid ({}) of file ({}) does not match self ({})".format(propid, filepath, self.propid))
-                        continue
-
-                    self.load_file(filepath)
-
-            time.sleep(self.fifo_sleep)
-
     def load_file(self, filepath):
-        self.logger.info("loading file {}".format(filepath))
-
-        frame = Frame(path=filepath)
+        try:
+            frame = Frame(path=filepath)
+        except ValueError:
+            return
 
         if frame.inscode in ('HSC', 'SUP'):
             # Don't display raw HSC frames; mosaic plugin will display them
             return
+
+        self.logger.info("loading file {}".format(filepath))
 
         frameid = str(frame)
         chname = self.insconfig.getNameByFrameId(frameid)
@@ -199,6 +163,24 @@ class ANA(GingaPlugin.GlobalPlugin):
         image.set(name=frameid)
 
         self.fv.gui_do(self.fv.bulk_add_image, frameid, image, chname)
+
+    def watch_loop(self, ev_quit):
+
+        i = inotify.adapters.Inotify()
+        i.add_watch(self.data_dir)
+
+        while not ev_quit.is_set():
+            events = list(i.event_gen(yield_nones=False, timeout_s=1.0))
+
+            for event in events:
+                if event is not None:
+                    if ('IN_MOVED_TO' in event[1] or
+                        'IN_CLOSE_WRITE' in event[1]):
+                        (header, type_names, watch_path, filename) = event
+                        filepath = os.path.join(watch_path, filename)
+                        self.fv.nongui_do(self.load_file, filepath)
+
+        i.remove_watch(self.data_dir)
 
     #############################################################
     #    Called from Gen2 to deliver a command
