@@ -163,7 +163,7 @@ def delete(options, logger, files):
         logger.warn("Filesystem could not be brought below %3d%%!" % (
             options.lowater))
 
-def check_usage(options, logger):
+def check_usage(options, args, logger):
     # Check if we should delete because we have risen above the high
     # water mark
     pctused = get_disk_usage(options.fitsdir)
@@ -186,12 +186,12 @@ def main(options, args):
     try:
         if options.daemon:
             while True:
-                check_usage(options, logger)
+                check_usage(options, args, logger)
 
                 logger.debug("Sleeping for %3.2f secs" % options.interval)
                 time.sleep(options.interval)
         else:
-            check_usage(options, logger)
+            check_usage(options, args, logger)
 
     except KeyboardInterrupt:
         logger.error("Caught keyboard interrupt!")
