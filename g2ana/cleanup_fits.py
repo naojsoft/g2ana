@@ -122,7 +122,7 @@ def cleanup(options, args, logger):
         fitslist.append(bnch)
 
     # Sort by age
-    fitslist.sort(lambda x, y: int(round(x.age - y.age)))
+    fitslist.sort(key=lambda x: x.age)
     #print(fitslist)
 
     delete(options, logger, fitslist)
