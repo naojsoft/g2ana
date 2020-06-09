@@ -162,7 +162,7 @@ class ANA(GingaPlugin.GlobalPlugin):
         image = loader.load_file(filepath, logger=self.logger)
         image.set(name=frameid)
 
-        self.fv.gui_do(self.fv.bulk_add_image, frameid, image, chname)
+        self.fv.gui_do(self.fv.add_image, frameid, image, chname=chname)
 
     def watch_loop(self, ev_quit):
 
