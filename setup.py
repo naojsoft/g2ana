@@ -26,7 +26,7 @@ setup(
                 ],
     package_data = {'g2ana.icons':['*.png']},
     scripts = ['scripts/anamenu', 'scripts/anaview',
-               'scripts/datasink', 'scripts/cleanup_fits'],
+               'scripts/cleanup_fits'],
     install_requires=['inotify>=0.2.10'],
     classifiers = [
         "License :: OSI Approved :: BSD License",

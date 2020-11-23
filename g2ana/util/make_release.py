@@ -1,9 +1,8 @@
-from __future__ import print_function
 import os
 import time
 
 major = 2
-minor = 2
+minor = 3
 
 rlfile = 'version.py'
 backup = 'version.py.bak'
