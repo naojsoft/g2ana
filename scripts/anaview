@@ -44,7 +44,9 @@ if __name__ == "__main__":
         Bunch(module='Ana_UserInput', ws='dialogs', ptype='local', hidden=True),
         Bunch(module='Ana_Confirmation', ws='dialogs', ptype='local', hidden=True),
 
-        Bunch(module='CHARIS', ws='right', ptype='global', start=False,
+        Bunch(module='QL_CHARIS', ws='right', ptype='global', start=False,
+              category='Subaru'),
+        Bunch(module='QL_IRCS', ws='in:toplevel', ptype='global', start=False,
               category='Subaru'),
         ]:
         add_plugin_spec(spec)
