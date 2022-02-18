@@ -296,7 +296,7 @@ class AnaMenu(object):
         gen2home = self.get_gen2home()
 
         monport = 34000 + int(self.propid[-3:])
-        command_line = "{0}/statmon/statmon.py --monport={1} --loglevel=10 --log={2}/statmon_{3}.log".format(gen2home, monport, self.loghome, self.hostname)
+        command_line = "{0}/statmon/statmon.py --numthreads=100 --monport={1} --loglevel=20 --log={2}/statmon_{3}.log".format(gen2home, monport, self.loghome, self.hostname)
         args = shlex.split(command_line)
         self.__execute(cmd=args, procname='statmon')
 

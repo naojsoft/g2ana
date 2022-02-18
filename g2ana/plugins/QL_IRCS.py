@@ -61,7 +61,7 @@ class QL_IRCS(ObsLog.ObsLog):
                    #("UT", 'UT'),
                    ("HST", 'HST'),
                    #("PropId", 'PROP-ID'),
-                   ("Exp Time", 'EXPTIME'),
+                   ("Exp Time", 'EXP1TIME'),
                    ("Ndr", 'NDR'),
                    ("CoAdds", 'COADDS'),
                    ("Air Mass", 'AIRMASS'),
@@ -99,6 +99,12 @@ class QL_IRCS(ObsLog.ObsLog):
                           color_alternate_rows=True,
                           report_columns=columns,
                           cache_normalized_images=True)
+        self.rpt_columns = self.settings.get('report_columns')
+
+    def build_gui(self, container):
+        super(QL_IRCS, self).build_gui(container)
+
+        self.w.obslog_dir.set_text("{}/Procedure/IRCS".format(os.environ['HOME']))
 
     def replace_kwds(self, header):
         d = super(QL_IRCS, self).replace_kwds(header)
@@ -185,7 +191,8 @@ class QL_IRCS(ObsLog.ObsLog):
         if self.settings.get('cache_normalized_images', True):
             # write out a cached copy so we can reload as necessary
             try:
-                prefix = os.path.join(os.environ['GEN2COMMON'], 'data_cache')
+                prefix = os.path.join(os.environ['GEN2COMMON'],
+                                      'data_cache', 'IRCS')
             except KeyError:
                 prefix = '/tmp'
             cached_path = os.path.join(prefix, newname + '.fits')
@@ -199,7 +206,7 @@ class QL_IRCS(ObsLog.ObsLog):
         chname = self.chnames[0] if info['DET-ID'] == 'CAM' else self.chnames[1]
         channel = self.fv.get_current_channel()
         if channel.name != chname:
-            channel = self.fv.get_channel(chname)
+            channel = self.fv.get_channel_on_demand(chname)
             self.fv.change_channel(chname)
 
         # want to see the normalized image
