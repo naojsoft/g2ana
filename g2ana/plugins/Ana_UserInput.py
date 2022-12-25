@@ -46,7 +46,7 @@ class Ana_UserInput(GingaPlugin.LocalPlugin):
         container.add_widget(vbox1, stretch=0)
 
     def close(self):
-        chname = self.fv.get_channelName(self.fitsimage)
+        chname = self.fv.get_channel_name(self.fitsimage)
         self.fv.stop_local_plugin(chname, str(self))
         return True
         

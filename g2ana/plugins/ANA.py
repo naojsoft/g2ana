@@ -279,7 +279,7 @@ class ANA(GingaPlugin.GlobalPlugin):
         if not self.fv.has_channel(chname):
             self.fv.add_channel(chname)
 
-        chinfo = self.fv.get_channelInfo(chname)
+        chinfo = self.fv.get_channel_info(chname)
 
         # Deactivate plugin if one is already running
         pluginName = 'Ana_Confirmation'
@@ -303,7 +303,7 @@ class ANA(GingaPlugin.GlobalPlugin):
         if not self.fv.has_channel(chname):
             self.fv.add_channel(chname)
 
-        chinfo = self.fv.get_channelInfo(chname)
+        chinfo = self.fv.get_channel_info(chname)
 
         # Deactivate plugin if one is already running
         pluginName = 'Ana_UserInput'
