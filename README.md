@@ -18,7 +18,7 @@ etc) environment to run the software in with related dependencies.
 Activate this environment and then:
 
 ```bash
-$ python setup.py install
+$ pip install .
 ```
 
 
