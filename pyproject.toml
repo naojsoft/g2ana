@@ -1,0 +1,8 @@
+[build-system]
+requires = ["setuptools>=>=40.8.0",
+            "setuptools_scm[toml]>=6.0",
+            "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "g2ana/version.py"
