@@ -294,7 +294,7 @@ class AnaMenu(object):
         ''' statmon '''
         self.logger.info('starting statmon...')
         monport = 34000 + int(self.propid[-3:])
-        command_line = f"statmon --numthreads=100 --monport={monport} --gen2host={self.rohost} --loglevel=20 --log={self.loghome}/statmon_{self.hostname}.log"
+        command_line = f"statmon --numthreads=50 --monport={monport} --gen2host={self.rohost} --loglevel=20 --log={self.loghome}/statmon_{self.hostname}.log"
         self.logger.info(f'statmon cmd: {command_line}')
         args = shlex.split(command_line)
         self.__execute(cmd=args, procname='statmon')
@@ -422,17 +422,9 @@ def main(options, args):
     logger = ssdlog.make_logger(hostname, options)
 
     rohost = options.rohost
-
-    def SigHandler(signum, frame):
-        """Signal handler for all unexpected conditions."""
-        logger.debug('signal handling.  %s' %str(signum))
-        #update_menu_num(menu_file, num_menu-1, logger=logger)
-        #ana.quit('quit')
-
-    # Set signal handler for signals.  Add any other signals you want to
-    # handle or terminate here.
-    for sig in [signal.SIGINT, signal.SIGTERM, signal.SIGHUP]:
-        signal.signal(sig, SigHandler)
+    if rohost is None:
+        rohost = 'localhost'
+    logger.info(f"will connect using remote host '{rohost}'")
 
     app = Widgets.Application(logger=logger)
     root = app.make_window(title='ANA Menu')
