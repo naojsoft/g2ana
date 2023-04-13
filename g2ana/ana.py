@@ -283,20 +283,19 @@ class AnaMenu(object):
 
     def launch_fits_viewer(self):
         ''' fits viewer '''
-
+        os.environ['GEN2HOST'] = self.rohost
         command_line = "anaview -t qt5 --nosplash --loglevel=20 --log={0}/anaview_{1}.log".format(self.loghome, self.hostname)
 
+        self.logger.info(f'anaview cmd: {command_line}')
         args = shlex.split(command_line)
         self.__execute(cmd=args, procname='fits viewer')
 
     def launch_statmon(self):
         ''' statmon '''
-        self.logger.debug('starting statmon...')
-        os.environ['RO_NAMES'] = self.rohost
-        gen2home = self.get_gen2home()
-
+        self.logger.info('starting statmon...')
         monport = 34000 + int(self.propid[-3:])
-        command_line = "{0}/statmon/statmon.py --numthreads=100 --monport={1} --loglevel=20 --log={2}/statmon_{3}.log".format(gen2home, monport, self.loghome, self.hostname)
+        command_line = f"statmon --numthreads=100 --monport={monport} --gen2host={self.rohost} --loglevel=20 --log={self.loghome}/statmon_{self.hostname}.log"
+        self.logger.info(f'statmon cmd: {command_line}')
         args = shlex.split(command_line)
         self.__execute(cmd=args, procname='statmon')
 
