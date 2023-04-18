@@ -297,7 +297,7 @@ class AnaMenu(object):
         ''' statmon '''
         self.logger.info('starting statmon...')
         monport = 34000 + int(self.propid[-3:])
-        command_line = f"statmon --numthreads=50 --monport={monport} --gen2host={self.rohost} --loglevel=20 --log={self.loghome}/statmon_{self.hostname}.log"
+        command_line = f"statmon --numthreads=50 --monport={monport} --loglevel=20 --log={self.loghome}/statmon_{self.hostname}.log"
         self.logger.info(f'statmon cmd: {command_line}')
         args = shlex.split(command_line)
         self.__execute(cmd=args, procname='statmon')
