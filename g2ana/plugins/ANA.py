@@ -83,8 +83,8 @@ class ANA(GingaPlugin.GlobalPlugin):
 
         # make a name and port for our monitor
         mymonname = '{}.mon'.format(self.svcname)
-        self.monport = 10000 + int(self.propid[-3:])
-        self.port = 9000 + int(self.propid[-3:])
+        self.monport = 10000 + int(self.propid[-5:])
+        self.port = 8000 + int(self.propid[-5:])
         #self.channels = ['g2task']
 
         threadPool = self.fv.get_threadPool()
