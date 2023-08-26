@@ -364,7 +364,7 @@ class AnaMenu(object):
         self.logger.debug('starting focas....')
 
         obcp = 'OBCP05'
-        cmd = "/home/focas01/focas.ana %s %s %s %s"
+        cmd = "/home/focas01/focas89.ana %s %s %s %s"
         insname = 'FOCAS'
         self.__execute_obcp(obcp, cmd, insname)
 
