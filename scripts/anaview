@@ -39,15 +39,17 @@ if __name__ == "__main__":
     # Add Subaru-specific plugins
     for spec in [
         Bunch(module='ANA', ptype='global', hidden=True, optray=False,
-              start=True),
+              enabled=True, start=True),
 
-        Bunch(module='Ana_UserInput', ws='dialogs', ptype='local', hidden=True),
-        Bunch(module='Ana_Confirmation', ws='dialogs', ptype='local', hidden=True),
+        Bunch(module='Ana_UserInput', workspace='dialogs', ptype='local',
+              enabled=True, hidden=True),
+        Bunch(module='Ana_Confirmation', workspace='dialogs', ptype='local',
+              enabled=True, hidden=True),
 
-        Bunch(module='QL_CHARIS', ws='right', ptype='global', start=False,
-              category='Subaru'),
-        Bunch(module='QL_IRCS', ws='in:toplevel', ptype='global', start=False,
-              category='Subaru'),
+        Bunch(module='QL_CHARIS', workspace='right', ptype='global',
+              start=False, enabled=True, category='Subaru'),
+        Bunch(module='QL_IRCS', workspace='in:toplevel', ptype='global',
+              start=False, enabled=True, category='Subaru'),
         ]:
         add_plugin_spec(spec)
 
@@ -68,20 +70,4 @@ if __name__ == "__main__":
     if options.display:
         os.environ['DISPLAY'] = options.display
 
-    # Are we debugging this?
-    if options.debug:
-        import pdb
-
-        pdb.run('viewer.main(options, args)')
-
-    # Are we profiling this?
-    elif options.profile:
-        import profile
-
-        print(("%s profile:" % sys_argv[0]))
-        profile.run('viewer.main(options, args)')
-
-    else:
-        viewer.main(options, args)
-
-# END
+    viewer.main(options, args)
