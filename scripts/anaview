@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 #
-# anaview -- Customized Ginga viewer.
+# anaview -- Customized Ginga viewer for the Gen2 analysis servers.
 #
 import sys
 import os
@@ -49,6 +49,8 @@ if __name__ == "__main__":
         Bunch(module='QL_CHARIS', workspace='right', ptype='global',
               start=False, enabled=True, category='Subaru'),
         Bunch(module='QL_IRCS', workspace='in:toplevel', ptype='global',
+              start=False, enabled=True, category='Subaru'),
+        Bunch(module='QL_MOIRCS', workspace='in:toplevel', ptype='global',
               start=False, enabled=True, category='Subaru'),
         ]:
         add_plugin_spec(spec)
