@@ -153,7 +153,7 @@ class AnaMenu(object):
                            iconpath=os.path.join(icondir, 'view-file.png'),
                            iconsize=(24, 24))
         a.add_callback('activated', lambda w: self.launch_fits_viewer())
-        a.set_tooltip("Start ginga FITS viewer")
+        a.set_tooltip("Start Ginga FITS viewer")
         a = tb1.add_action('Ds9', toggle=False,
                            iconpath=os.path.join(icondir, 'view-file.png'),
                            iconsize=(24, 24))
@@ -177,6 +177,11 @@ class AnaMenu(object):
                            iconsize=(28, 24))
         a.add_callback('activated', lambda w: self.launch_statmon())
         a.set_tooltip("Start Gen2 status monitor")
+        a = tb3.add_action('SPOT', toggle=False,
+                           iconpath=os.path.join(icondir, 'spot.png'),
+                           iconsize=(24, 24))
+        a.add_callback('activated', lambda w: self.launch_spot())
+        a.set_tooltip("Start Site Planning and Observation Tool")
 
         self.w.root.set_widget(vbox)
         self.w.root.add_callback('close', lambda w: self.quit())
@@ -301,6 +306,15 @@ class AnaMenu(object):
         self.logger.info(f'statmon cmd: {command_line}')
         args = shlex.split(command_line)
         self.__execute(cmd=args, procname='statmon')
+
+    def launch_spot(self):
+        ''' SPOT '''
+        self.logger.info('starting SPOT...')
+        # Do we need to set CONFHOME here?
+        command_line = f"spot --loglevel=20 --log={self.loghome}/spot_{self.hostname}.log"
+        self.logger.info(f'spot cmd: {command_line}')
+        args = shlex.split(command_line)
+        self.__execute(cmd=args, procname='spot')
 
     def launch_ds9(self):
         ''' ds9 '''
