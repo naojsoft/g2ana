@@ -10,6 +10,7 @@ import fcntl
 import select
 import re, time
 import errno
+import queue as Queue
 
 import numpy as np
 
@@ -78,6 +79,7 @@ class ANA(GingaPlugin.GlobalPlugin):
 
         # for looking up instrument names
         self.insconfig = INSconfig.INSdata()
+        self.queue = Queue.Queue()
 
         self.data_dir = os.path.join('/data', self.propid)
 
@@ -135,6 +137,8 @@ class ANA(GingaPlugin.GlobalPlugin):
                                 "monitor for files to be loaded")
         else:
             self.fv.nongui_do(self.watch_loop, self.fv.ev_quit)
+
+        self.fv.nongui_do(self.load_images_loop, self.fv.ev_quit)
         self.logger.info("ANA plugin started.")
 
     def stop(self):
@@ -165,6 +169,7 @@ class ANA(GingaPlugin.GlobalPlugin):
         self.fv.gui_do(self.fv.add_image, frameid, image, chname=chname)
 
     def watch_loop(self, ev_quit):
+        self.fv.assert_nongui_thread()
 
         i = inotify.adapters.Inotify()
         i.add_watch(self.data_dir)
@@ -178,9 +183,33 @@ class ANA(GingaPlugin.GlobalPlugin):
                         'IN_CLOSE_WRITE' in event[1]):
                         (header, type_names, watch_path, filename) = event
                         filepath = os.path.join(watch_path, filename)
-                        self.fv.nongui_do(self.load_file, filepath)
+                        # Make a bunch, because we will probably want to add
+                        # more info in the future
+                        bnch = Bunch.Bunch(filepath=filepath)
+                        self.queue.put(bnch)
 
         i.remove_watch(self.data_dir)
+
+    def load_images_loop(self, ev_quit):
+        self.logger.info("load images loop starting up...")
+        self.fv.assert_nongui_thread()
+
+        filepath = None
+        while not ev_quit.is_set():
+            try:
+                bnch = self.queue.get(block=True, timeout=0.1)
+
+                filepath = bnch.filepath
+                self.load_file(filepath)
+
+            except Queue.Empty:
+                continue
+
+            except Exception as e:
+                self.logger.error(f"Error displaying image '{filepath}': {e}",
+                                  exc_info=True)
+
+        self.logger.info("load images loop terminating...")
 
     #############################################################
     #    Called from Gen2 to deliver a command

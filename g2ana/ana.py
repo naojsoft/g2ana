@@ -150,7 +150,7 @@ class AnaMenu(object):
 
         # Add some buttons to the tool bars.
         a = tb1.add_action('Ginga', toggle=False,
-                           iconpath=os.path.join(icondir, 'view-file.png'),
+                           iconpath=os.path.join(icondir, 'ginga.png'),
                            iconsize=(24, 24))
         a.add_callback('activated', lambda w: self.launch_fits_viewer())
         a.set_tooltip("Start Ginga FITS viewer")
