@@ -287,7 +287,7 @@ class AnaMenu(object):
         gen2host = os.environ.get('GEN2HOST', '').strip()
         if len(gen2host) == 0:
             os.environ['GEN2HOST'] = self.rohost
-        command_line = "anaview -t qt5 --nosplash --loglevel=20 --log={0}/anaview_{1}.log".format(self.loghome, self.hostname)
+        command_line = "anaview -t qt5 --nosplash --numthreads=30 --loglevel=20 --log={0}/anaview_{1}.log".format(self.loghome, self.hostname)
 
         self.logger.info(f'anaview cmd: {command_line}')
         args = shlex.split(command_line)
