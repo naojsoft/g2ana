@@ -149,11 +149,11 @@ class AnaMenu(object):
         self.w.msgbar = status
 
         # Add some buttons to the tool bars.
-        a = tb1.add_action('Ginga', toggle=False,
-                           iconpath=os.path.join(icondir, 'ginga.png'),
+        a = tb1.add_action('anaview', toggle=False,
+                           iconpath=os.path.join(icondir, 'ginga.svg'),
                            iconsize=(24, 24))
         a.add_callback('activated', lambda w: self.launch_fits_viewer())
-        a.set_tooltip("Start Ginga FITS viewer")
+        a.set_tooltip("Start anaview FITS viewer")
         a = tb1.add_action('Ds9', toggle=False,
                            iconpath=os.path.join(icondir, 'view-file.png'),
                            iconsize=(24, 24))
@@ -176,9 +176,9 @@ class AnaMenu(object):
                            iconpath=os.path.join(icondir, 'statmon.png'),
                            iconsize=(28, 24))
         a.add_callback('activated', lambda w: self.launch_statmon())
-        a.set_tooltip("Start Gen2 status monitor")
+        a.set_tooltip("Start Gen2 Status Monitor")
         a = tb3.add_action('SPOT', toggle=False,
-                           iconpath=os.path.join(icondir, 'spot.png'),
+                           iconpath=os.path.join(icondir, 'spot.svg'),
                            iconsize=(24, 24))
         a.add_callback('activated', lambda w: self.launch_spot())
         a.set_tooltip("Start Site Planning and Observation Tool")
