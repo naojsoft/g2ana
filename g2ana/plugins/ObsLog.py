@@ -382,14 +382,9 @@ class ObsLog(GingaPlugin.GlobalPlugin):
 
         if chname is None:
             # <-- we've apparently never loaded this file
-            # insname = self.insconfig.getNameByFrameId(frameid)
-            # filepath = os.path.join('/gen2', 'share', 'data', insname,
-            #                         frameid + '.fits')
-            # self.logger.info(f"attempting to load '{filepath}' via Gen2Int")
-            # pl_obj = self.fv.gpmon.get_plugin('Gen2Int')
-            # bnch = pl_obj.open_fits(filepath, frameid=frameid,
-            #                         display_image=True, wait=True)
-            # chname = bnch.chname
+            self.logger.info(f"attempting to load '{frameid}' via ANA")
+            pl_obj = self.fv.gpmon.get_plugin('ANA')
+            pl_obj.load_frame(frameid)
             return
 
         # switch channels if we are not showing the desired one

@@ -2,8 +2,8 @@
 # ANA.py -- ANA plugin for Ginga FITS viewer
 #
 
-# Takeshi Inagaki
-# Eric Jeschke (eric@naoj.org)
+# T. Inagaki
+# E. Jeschke
 #
 import os, pwd
 import fcntl
@@ -80,6 +80,7 @@ class ANA(GingaPlugin.GlobalPlugin):
         # for looking up instrument names
         self.insconfig = INSconfig.INSdata()
         self.queue = Queue.Queue()
+        self.pfs_arm_dct = {'1': 'B', '2': 'R', '3': 'N', '4': 'R'}
 
         self.data_dir = os.path.join('/data', self.propid)
 
@@ -148,6 +149,43 @@ class ANA(GingaPlugin.GlobalPlugin):
         self.monitor.stop(wait=True)
         self.logger.info("ANA plugin stopped.")
 
+    def get_chname(self, fr, header, chname):
+        """Determine the channel name from the frame, FITS header and
+        default CHNAME.
+        """
+        if fr.inscode == 'PFS':
+            if fr.frametype in ('A', 'B'):
+                digits = str(fr.number)
+                # PFS data model: spectrograph indicated by second digit from right,
+                # arm indicated by right-most digit
+                spg, arm = digits[-2], self.pfs_arm_dct[digits[-1]]
+                chname = f"PFS{fr.frametype}_{arm}{spg}"
+            else:
+                chname = fr.inscode + fr.frametype
+
+        elif fr.inscode in ['MCS', 'FCS']:
+            det_id = int(header['DET-ID'])
+            chname = chname + f'_{det_id}'
+
+        return chname
+
+    def get_wsname(self, chname):
+        """Determine the workspace from the CHNAME.
+        """
+        wsname = 'channels'     # the default
+        if chname.startswith('PFS'):
+            if chname[3] in ('A', 'B'):
+                # spectrograph indicated by last character of channel name
+                spg = chname[-1]
+                wsname = f"PFS_{spg}"
+
+        elif chname.startswith('FOCAS'):
+            wsname = 'FOCAS'
+        elif chname.startswith('MOIRCS'):
+            wsname = 'MOIRCS'
+
+        return wsname
+
     def load_file(self, filepath):
         try:
             frame = Frame(path=filepath)
@@ -155,18 +193,42 @@ class ANA(GingaPlugin.GlobalPlugin):
             return
 
         if frame.inscode in ('HSC', 'SUP'):
-            # Don't display raw HSC frames; mosaic plugin will display them
+            # Don't display raw HSC, SPCAM
             return
 
         self.logger.info("loading file {}".format(filepath))
 
         frameid = str(frame)
-        chname = self.insconfig.getNameByFrameId(frameid)
-
         image = loader.load_file(filepath, logger=self.logger)
         image.set(name=frameid)
 
+        chname = self.insconfig.getNameByFrameId(frameid)
+        header = image.get_header()
+        chname = self.get_chname(frame, header, chname)
+        wsname = self.get_wsname(chname)
+
+        if not self.fv.has_channel(chname):
+            # create the channel in this workspace
+            prefs = self.fv.get_preferences()
+            settings = prefs.create_category(f'channel_{chname}')
+            settings.set(numImages=1, raisenew=False,
+                         focus_indicator=False)
+            self.fv.gui_call(self.fv.add_channel, chname,
+                             settings=settings, workspace=wsname)
+
         self.fv.gui_do(self.fv.add_image, frameid, image, chname=chname)
+        return chname
+
+    def load_frame(self, frameid):
+        # See ObsLog plugin for where this method is called
+        filepath = None
+        for suffix in ['.fits', '.fits.fz', '.fits.gz']:
+            path = os.path.join(self.data_dir, frameid + suffix)
+            if os.path.exists(path):
+                filepath = path
+                break
+        if filepath is not None:
+            self.fv.nongui_do(self.load_file, filepath)
 
     def watch_loop(self, ev_quit):
         self.fv.assert_nongui_thread()
