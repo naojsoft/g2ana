@@ -52,6 +52,8 @@ if __name__ == "__main__":
               start=False, enabled=True, category='Subaru'),
         Bunch(module='QL_MOIRCS', workspace='in:toplevel', ptype='global',
               start=False, enabled=True, category='Subaru'),
+        Bunch(module='QL_FOCAS', workspace='in:toplevel', ptype='global',
+              start=False, enabled=True, category='Subaru'),
         ]:
         add_plugin_spec(spec)
 
