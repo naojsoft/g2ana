@@ -3,7 +3,7 @@
 #
 # This script runs on the data analysis machines
 #
-# Eric Jeschke (eric@naoj.org)
+# E. Jeschke
 #
 """
 Removes FITS files from a directory tree to bring the disk usage under

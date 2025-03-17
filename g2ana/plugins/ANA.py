@@ -145,7 +145,7 @@ class ANA(GingaPlugin.GlobalPlugin):
     def stop(self):
         self.logger.info("ANA plugin shutting down...")
         self.viewsvc.ro_stop(wait=True)
-        self.monitor.stop_server(wait=True)
+        #self.monitor.stop_server(wait=True)
         self.monitor.stop(wait=True)
         self.logger.info("ANA plugin stopped.")
 
@@ -186,6 +186,29 @@ class ANA(GingaPlugin.GlobalPlugin):
 
         return wsname
 
+    def get_operation_chname(self, insname):
+        self.fv.assert_gui_thread()
+
+        # If this instrument has multiple windows for different detectors
+        # choose one of them for the operation channel
+        wsname = self.get_wsname(insname)
+        if wsname in ['FOCAS', 'MOIRCS']:
+            chname = wsname + '_1'
+        elif wsname in ['PFS']:
+            chname = 'PFSA_B1'
+        else:
+            chname = wsname
+
+        if not self.fv.has_channel(chname):
+            # create the channel in this workspace
+            prefs = self.fv.get_preferences()
+            settings = prefs.create_category(f'channel_{chname}')
+            settings.set(numImages=1, raisenew=False,
+                         focus_indicator=False)
+            self.fv.add_channel(chname, settings=settings,
+                                workspace=wsname)
+        return chname
+
     def load_file(self, filepath):
         try:
             frame = Frame(path=filepath)
@@ -216,7 +239,8 @@ class ANA(GingaPlugin.GlobalPlugin):
             self.fv.gui_call(self.fv.add_channel, chname,
                              settings=settings, workspace=wsname)
 
-        self.fv.gui_do(self.fv.add_image, frameid, image, chname=chname)
+        self.fv.gui_do(self.fv.add_image, frameid, image, chname=chname,
+                       wsname=wsname)
         return chname
 
     def load_frame(self, frameid):
@@ -366,10 +390,7 @@ class ANA(GingaPlugin.GlobalPlugin):
                      instrument_name=None, title=None, dialog=None):
 
         # Make sure the specified channel is available
-        chname = instrument_name
-        if not self.fv.has_channel(chname):
-            self.fv.add_channel(chname)
-
+        chname = self.get_operation_chname(instrument_name)
         chinfo = self.fv.get_channel_info(chname)
 
         # Deactivate plugin if one is already running
@@ -390,10 +411,7 @@ class ANA(GingaPlugin.GlobalPlugin):
                   instrument_name=None, title=None, itemlist=None,
                   iconfile=None, soundfile=None):
         # Make sure the specified channel is available
-        chname = instrument_name
-        if not self.fv.has_channel(chname):
-            self.fv.add_channel(chname)
-
+        chname = self.get_operation_chname(instrument_name)
         chinfo = self.fv.get_channel_info(chname)
 
         # Deactivate plugin if one is already running

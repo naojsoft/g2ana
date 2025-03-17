@@ -1,7 +1,7 @@
 #
 # Ana_Confirmation.py -- ANA Confirmation plugin for fits viewer
-# 
-# Eric Jeschke (eric@naoj.org)
+#
+# E. Jeschke
 #
 from ginga import GingaPlugin
 from ginga.gw import Widgets
@@ -15,10 +15,10 @@ class Ana_Confirmation(GingaPlugin.LocalPlugin):
     def build_gui(self, container, future=None):
         vbox1 = Widgets.VBox()
         vbox = Widgets.VBox()
-        
+
         fr = Widgets.Frame()
         fr.set_widget(vbox)
-        
+
         self.lbl = Widgets.Label()
         vbox.add_widget(self.lbl, stretch=0)
 
@@ -49,7 +49,7 @@ class Ana_Confirmation(GingaPlugin.LocalPlugin):
         chname = self.fv.get_channel_name(self.fitsimage)
         self.fv.stop_local_plugin(chname, str(self))
         return True
-        
+
     def start(self, future=None):
         self.callerInfo = future
         # Gather parameters
@@ -74,14 +74,14 @@ class Ana_Confirmation(GingaPlugin.LocalPlugin):
 
     def resume(self):
         pass
-    
+
     def release_caller(self):
         try:
             self.close()
         except:
             pass
         self.callerInfo.resolve(0)
-        
+
     def ok(self, index):
         self.logger.info("OK clicked, index=%d" % (index))
         p = self.callerInfo.get_data()
@@ -98,11 +98,11 @@ class Ana_Confirmation(GingaPlugin.LocalPlugin):
 
     def stop(self):
         pass
-    
+
     def redo(self):
         pass
-    
+
     def __str__(self):
         return 'ana_confirmation'
-    
+
 #END
