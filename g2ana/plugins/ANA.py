@@ -49,6 +49,30 @@ class ANA(GingaPlugin.GlobalPlugin):
         # superclass defines some variables for us, like logger
         super(ANA, self).__init__(fv)
 
+        # get plugin settings
+        prefs = self.fv.get_preferences()
+        self.settings = prefs.create_category('plugin_ANA')
+        self.settings.add_defaults(transport=ro.default_transport,
+                                   port_base=8000, monport_base=10000)
+        self.settings.load()
+
+        # One protocol, not several.  A service that answered two ways would
+        # need two ports, and only the first could keep the one the propid
+        # says it should have -- the second would be whatever was free,
+        # which is no good where the ports are allocated in advance.  So the
+        # choice is made here instead: 'xmlrpc' where Gen2 has not been
+        # upgraded yet, the default otherwise.
+        self.transport = self.settings.get('transport')
+        if not isinstance(self.transport, str):
+            raise AnaError("transport ({}) must name a single protocol, not "
+                           "a list: this service answers one way"
+                           .format(self.transport))
+        try:
+            ro.ro_transport.get(self.transport)
+        except Exception as e:
+            raise AnaError("transport '{}' is not one this installation "
+                           "knows: {}".format(self.transport, e))
+
         # Find out what proposal ID we are logged in under
         self.propid = None
         username = pwd.getpwuid(os.getuid()).pw_name
@@ -84,10 +108,12 @@ class ANA(GingaPlugin.GlobalPlugin):
 
         self.data_dir = os.path.join('/data', self.propid)
 
-        # make a name and port for our monitor
+        # make a name and port for our monitor.  Both ports are the base
+        # plus the propid, so that every ANA on a host has its own and they
+        # can be opened ahead of time rather than discovered.
         mymonname = '{}.mon'.format(self.svcname)
-        self.monport = 10000 + int(self.propid[-5:])
-        self.port = 8000 + int(self.propid[-5:])
+        self.monport = self.settings.get('monport_base') + int(self.propid[-5:])
+        self.port = self.settings.get('port_base') + int(self.propid[-5:])
         #self.channels = ['g2task']
 
         threadPool = self.fv.get_threadPool()
@@ -127,10 +153,12 @@ class ANA(GingaPlugin.GlobalPlugin):
                                              ev_quit=self.fv.ev_quit,
                                              port=self.port,
                                              usethread=True,
+                                             transport=self.transport,
                                              threadPool=threadPool,
                                              method_list=method_list)
 
-        self.logger.info("starting ANA service on port {}".format(self.port))
+        self.logger.info("starting ANA service on port {} speaking {}"
+                         .format(self.port, self.transport))
         self.viewsvc.ro_start()
 
         if not have_inotify:

@@ -292,7 +292,15 @@ class AnaMenu(object):
         gen2host = os.environ.get('GEN2HOST', '').strip()
         if len(gen2host) == 0:
             os.environ['GEN2HOST'] = self.rohost
-        command_line = "anaview -t qt5 --nosplash --numthreads=30 --loglevel=20 --log={0}/anaview_{1}.log".format(self.loghome, self.hostname)
+        # --minthreads is the floor the pool will not shrink below, not an
+        # allocation: the viewer's pool grows on demand up to --numthreads
+        # and retires workers that go idle.  The floor is here because
+        # several of these workers never come back -- the ANA service's
+        # serve loop, the monitor's loops, the inotify watch and the image
+        # loader all run for the life of the viewer -- so a pool that had
+        # shrunk to its old default would have to grow again before it could
+        # answer anything.
+        command_line = "anaview -t qt5 --nosplash --numthreads=30 --minthreads=8 --loglevel=20 --log={0}/anaview_{1}.log".format(self.loghome, self.hostname)
 
         self.logger.info(f'anaview cmd: {command_line}')
         args = shlex.split(command_line)
