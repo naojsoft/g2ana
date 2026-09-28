@@ -10,7 +10,7 @@ class Ana_UserInput(GingaPlugin.LocalPlugin):
 
     def __init__(self, fv, fitsimage):
         # superclass defines some variables for us, like logger
-        super(Ana_UserInput, self).__init__(fv, fitsimage)
+        super().__init__(fv, fitsimage)
 
     def build_gui(self, container, future=None):
         vbox1 = Widgets.VBox()
@@ -88,7 +88,7 @@ class Ana_UserInput(GingaPlugin.LocalPlugin):
     def release_caller(self):
         try:
             self.close()
-        except:
+        except Exception:
             pass
         self.callerInfo.resolve(0)
 

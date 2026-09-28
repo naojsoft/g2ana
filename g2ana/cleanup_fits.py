@@ -26,9 +26,10 @@ $ ./cleanup_fits.py --loglevel=0 --fitsdir=/data --lo=50 --hi=80 \
 TODO: make this into a common module for instruments.  They can import
 it and run the daemon or cleanup functions as tasks.
 """
-import sys, re, time
-import os, fnmatch
-import logging
+import re
+import time
+import os
+import fnmatch
 
 from g2base import ssdlog, Bunch
 from g2base.astro.frame import getFrameInfoFromPath
@@ -102,7 +103,7 @@ def cleanup(options, args, logger):
 
         # Skip files that don't look like Subaru frames
         try:
-            res = getFrameInfoFromPath(fitspath)
+            getFrameInfoFromPath(fitspath)
 
         except Exception as e:
             logger.info("Not a Subaru FITS frame: '%s': %s" % (

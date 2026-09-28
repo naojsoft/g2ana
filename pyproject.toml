@@ -1,10 +1,73 @@
 [build-system]
-requires = ["setuptools>=64",
+requires = ["setuptools>=77",
             "setuptools_scm[toml]>=7",
             "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "g2ana"
+description = "Analysis menu for Subaru on-site data analysis"
+readme = {file = "README.md", content-type = "text/markdown"}
+authors = [{name = "Software Division, Subaru Telescope, NAOJ", email = "ocs@naoj.org"}]
+license = "BSD-3-Clause"
+license-files = ["LICENSE.md"]
+keywords = ["subaru", "telescope", "observation", "data", "analysis"]
+requires-python = ">=3.11"
+dynamic = ["version"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "inotify>=0.2.10",
+    "ginga>=4.1.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/naojsoft/g2ana"
+
+[tool.setuptools]
+zip-safe = false
+script-files = [
+    "scripts/anamenu",
+    "scripts/anadisp",
+    "scripts/anaview",
+    "scripts/cleanup_fits",
+]
+
+[tool.setuptools.packages.find]
+include = ["g2ana*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+g2ana = ["icons/*.png"]
 
 [tool.setuptools_scm]
 write_to = "g2ana/version.py"
 version_scheme = "release-branch-semver"
 
+[tool.ruff]
+# scripts/ are Python but carry no .py suffix, so ruff would not glob them.
+# target-version matches requires-python above; keep them together.
+target-version = "py311"
+extend-exclude = ["build", "g2ana/version.py"]
+extend-include = ["scripts/anadisp",
+                  "scripts/anamenu",
+                  "scripts/anaview",
+                  "scripts/cleanup_fits"]
+
+[tool.ruff.lint]
+# pycodestyle (E/W) + pyflakes (F), the same coverage as the rest of the
+# Gen2 repositories
+select = ["E", "F", "W"]
+ignore = [
+    "E265",  # block comment should start with '# '
+    "E266",  # too many leading '#' for block comment
+    "E402",  # module level import not at top of file
+    "E501",  # line too long
+    "E741",  # ambiguous variable name 'l'
+]
