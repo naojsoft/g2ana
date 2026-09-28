@@ -10,7 +10,28 @@ from ginga.rv import main as g_main
 from ginga.misc.Bunch import Bunch
 
 import g2ana
-import fitsview.plugins
+
+try:
+    import fitsview.plugins
+except ImportError as e:
+    # Not a declared dependency, so pip will not have caught this: fitsview
+    # is deployed to the analysis hosts alongside g2ana rather than fetched.
+    # Say so here, because the bare ImportError names a package nobody would
+    # expect a viewer in this repository to need.
+    raise SystemExit(
+        "anaview cannot start: the 'fitsview' package is not importable"
+        " ({}).\n"
+        "\n"
+        "anaview runs fitsview's ObsLog and QL_* plugins rather than copies"
+        " of them, so\n"
+        "it needs that package installed even though nothing in g2ana's"
+        " dependencies\n"
+        "names it -- fitsview is deployed to the analysis hosts alongside"
+        " g2ana rather\n"
+        "than resolved by pip.  See the note at the top of g2ana's"
+        " pyproject.toml.\n"
+        "\n"
+        "Install fitsview into this environment and try again.".format(e))
 
 def get_plugin_spec(name):
     l_name = name.lower()
