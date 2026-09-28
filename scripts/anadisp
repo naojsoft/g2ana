@@ -49,13 +49,13 @@ def main(options, args):
 
     passfile = os.path.join(os.environ['HOME'], '.__vp')
     cmdstr = "echo '{}' | vncpasswd -f > {}".format(opass, passfile)
-    res = os.system(cmdstr)
+    os.system(cmdstr)
 
     cmdstr = "chmod go-rwx {}".format(passfile)
-    res = os.system(cmdstr)
+    os.system(cmdstr)
 
     cmdstr = "vncviewer {}:{} -Shared -passwd {} &".format(aserver, adisp, passfile)
-    res = os.system(cmdstr)
+    os.system(cmdstr)
 
 
 if __name__ == '__main__':

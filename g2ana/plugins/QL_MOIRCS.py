@@ -32,13 +32,6 @@ Double-click on a log entry.
 
 """
 import os
-from collections import OrderedDict
-
-from astropy.io import fits
-
-from ginga import GingaPlugin, AstroImage
-from ginga.misc import Bunch
-from ginga.gw import Widgets
 
 from g2base.astro.frame import Frame
 
@@ -130,11 +123,11 @@ class QL_MOIRCS(ObsLog.ObsLog):
             return
 
         frameid = frameid.strip()
-        fr = Frame(frameid)
+        Frame(frameid)
 
         if 'DET-ID' not in header:
             return
-        det_id = int(header['DET-ID'])
+        int(header['DET-ID'])
         # data_np = image.get_data()
 
         # if det_id == 1:

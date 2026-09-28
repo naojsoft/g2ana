@@ -8,7 +8,7 @@ a local or remote analysis site.
 
 * Requires `g2cam` package from naojsoft.
 
-* Optional: `ginga`, `naojutils` packages from naojsoft.
+* Optional: `naojutils` package from naojsoft.
 
 ## Installation
 

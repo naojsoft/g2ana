@@ -5,17 +5,15 @@
 # T. Inagaki
 # E. Jeschke
 #
-import os, pwd
-import fcntl
-import select
-import re, time
-import errno
+import os
+import pwd
+import re
+import time
 import queue as Queue
 
 import numpy as np
 
 from ginga import GingaPlugin
-from ginga import AstroImage
 from ginga.misc import Bunch, Future
 from ginga.util import loader, paths
 
@@ -47,7 +45,7 @@ class ANA(GingaPlugin.GlobalPlugin):
 
     def __init__(self, fv):
         # superclass defines some variables for us, like logger
-        super(ANA, self).__init__(fv)
+        super().__init__(fv)
 
         # get plugin settings
         prefs = self.fv.get_preferences()
@@ -341,7 +339,7 @@ class ANA(GingaPlugin.GlobalPlugin):
 
         # Get method we should call
         if not hasattr(obj, methodName):
-            raise Gen2Error("No such method '%s' in plugin object %s" % (
+            raise AnaError("No such method '%s' in plugin object %s" % (
                 methodName, pluginName))
         method = getattr(obj, methodName)
 

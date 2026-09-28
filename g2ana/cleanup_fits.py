@@ -109,7 +109,7 @@ def cleanup(options, args, logger):
 
         # Skip files that don't look like Subaru frames
         try:
-            res = getFrameInfoFromPath(fitspath)
+            getFrameInfoFromPath(fitspath)
 
         except Exception as e:
             logger.info("Not a Subaru FITS frame: '%s': %s" % (

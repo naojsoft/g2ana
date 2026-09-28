@@ -3,10 +3,8 @@
 # E. Jeschke
 #
 
-import sys
 import os
 import re
-import signal
 import shlex
 import subprocess
 import getpass
@@ -17,7 +15,6 @@ from ginga.gw import Widgets
 from ginga.util import paths
 
 from g2base import ssdlog, Bunch
-from g2base.remoteObjects import remoteObjects as ro
 
 from g2ana.icons import __file__
 icondir, _nm = os.path.split(__file__)
@@ -27,7 +24,7 @@ class ANAError(Exception):
     """Base class for exceptions in this module."""
     pass
 
-class Process(object):
+class Process:
 
     def __init__(self, logger):
 
@@ -61,7 +58,7 @@ class Process(object):
 
 
 
-class AnaMenu(object):
+class AnaMenu:
 
     def __init__(self, root, logger, rohost, hostname):
 
@@ -262,7 +259,7 @@ class AnaMenu(object):
 
     def __execute(self, cmd, procname):
         ''' execute applications '''
-        error = self.process.execute(cmd)
+        self.process.execute(cmd)
 
     def remove_propid(self):
         try:
@@ -462,7 +459,7 @@ def main(options, args):
 
         app.mainloop()
 
-    except KeyboardInterrupt as e:
+    except KeyboardInterrupt:
         print('interrupted by keyboard....')
         logger.debug('Keyboard Interrupt...')
         ana.quit('quit')
