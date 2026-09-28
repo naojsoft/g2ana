@@ -121,6 +121,16 @@ class ANA(GingaPlugin.GlobalPlugin):
                                        threadPool=threadPool,
                                        ev_quit=self.fv.ev_quit)
 
+        # ObsLog and the QL_* plugins are fitsview's, unchanged.  The one
+        # thing they cannot know is where a frame the log has never
+        # displayed is read from -- on the summit it comes out of Gen2's
+        # shared data area, and here out of this proposal's own directory --
+        # so they ask a setting, and this is the plugin that knows the
+        # answer.  Set rather than defaulted: whichever of us is built
+        # first, the name we put here is the one ObsLog reads.
+        obslog_settings = prefs.create_category('plugin_ObsLog')
+        obslog_settings.set(loader_plugin=type(self).__name__)
+
         # some of the other plugins expect this handle to be available
         # via fv
         self.fv.controller = self
@@ -270,7 +280,14 @@ class ANA(GingaPlugin.GlobalPlugin):
         return chname
 
     def load_frame(self, frameid):
-        # See ObsLog plugin for where this method is called
+        """Load a frame by name, for the obslog's `loader_plugin` hook.
+
+        :return: None, always.  The file is read on another thread and the
+            frame appears in its channel when it has been; there is no
+            channel to hand back yet, and the obslog is written to expect
+            that.  A frame we hold no file for never appears, which is the
+            same as it has always been.
+        """
         filepath = None
         for suffix in ['.fits', '.fits.fz', '.fits.gz']:
             path = os.path.join(self.data_dir, frameid + suffix)

@@ -10,6 +10,7 @@ from ginga.rv import main as g_main
 from ginga.misc.Bunch import Bunch
 
 import g2ana
+import fitsview.plugins
 
 def get_plugin_spec(name):
     l_name = name.lower()
@@ -29,6 +30,20 @@ if __name__ == "__main__":
     sys.path.insert(0, moduleHome)
     pluginHome = os.path.join(moduleHome, 'plugins')
     sys.path.insert(0, pluginHome)
+
+    # ObsLog and the QL_* plugins come from fitsview, which is the same
+    # code: this viewer and the summit's differ only in where a frame that
+    # the log has never displayed is read from, and ObsLog asks its
+    # `loader_plugin` setting about that.  The ANA plugin names itself
+    # there, so nothing needs configuring here.
+    #
+    # Their directory goes on sys.path because they import each other by
+    # bare module name (QL_FOCAS does `import ObsLog`), the same way
+    # fitsview's own launcher arranges it.  g2ana deliberately keeps no
+    # copies of them: two directories on the path, each with an ObsLog.py,
+    # and which one you got would come down to insertion order.
+    fitsviewPluginHome = os.path.split(fitsview.plugins.__file__)[0]
+    sys.path.insert(0, fitsviewPluginHome)
 
     # change spec of stock Header plugin to start automatically, and don't
     # show icon in Operations plugin

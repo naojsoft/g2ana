@@ -1,3 +1,17 @@
+# ---------------------------------------------------------------------------
+# NOTE: g2ana needs `fitsview` installed, and does not declare it.
+#
+# scripts/anaview loads its ObsLog and QL_* plugins straight out of the
+# fitsview package -- they are the same plugins the summit viewer runs, and
+# g2ana deliberately keeps no copies to drift from them.  So `anaview` will
+# not start without fitsview on the path, even though nothing below says so.
+#
+# It is left out on purpose: fitsview is deployed to the analysis hosts by
+# the same process that deploys this, not resolved by pip, and naming it
+# here would have pip try to fetch a package that is not published.  If you
+# are setting up a new host, install fitsview yourself.
+# ---------------------------------------------------------------------------
+
 [build-system]
 requires = ["setuptools>=77",
             "setuptools_scm[toml]>=7",
@@ -22,6 +36,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Astronomy",
     "Topic :: Scientific/Engineering :: Physics",
 ]
+# fitsview belongs here and is left out on purpose; see the note at the top.
 dependencies = [
     "inotify>=0.2.10",
     "ginga>=4.1.1",
