@@ -52,7 +52,8 @@ class ANA(GingaPlugin.GlobalPlugin):
         self.settings = prefs.create_category('plugin_ANA')
         self.settings.add_defaults(transport=ro.default_transport,
                                    port_base=8000, monport_base=10000)
-        self.settings.load()
+        # Silently: not having a plugin_ANA.cfg is the ordinary case.
+        self.settings.load(onError='silent')
 
         # One protocol, not several.  A service that answered two ways would
         # need two ports, and only the first could keep the one the propid

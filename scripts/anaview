@@ -5,6 +5,17 @@
 import sys
 import os
 
+# NOTE: need to set here so that ginga.util.paths picks it up first -- it
+# reads GINGA_HOME when it is imported, and every ginga import below pulls
+# it in.  This is how fitsview and guideview find their configuration too,
+# each under its own name.
+#
+# Guarded, unlike theirs: an analysis host need not have CONFHOME set, and a
+# viewer that refused to start without it would be a viewer that used to
+# work.  Without it, ginga's own default (~/.ginga) applies as before.
+if 'CONFHOME' in os.environ:
+    os.environ['GINGA_HOME'] = os.path.join(os.environ['CONFHOME'], 'anaview')
+
 from ginga.rv import main as g_main
 
 from ginga.misc.Bunch import Bunch
