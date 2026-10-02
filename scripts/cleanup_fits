@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
     # Parse command line options
     usage = "usage: %prog [options] [file] ..."
-    argprs = ArgumentParser(usage=usage, version=('%prog'))
+    argprs = ArgumentParser(usage=usage)
 
     argprs.add_argument("--debug", dest="debug", default=False,
                       action="store_true",
