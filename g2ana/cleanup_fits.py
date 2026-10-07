@@ -26,9 +26,10 @@ $ ./cleanup_fits.py --loglevel=0 --fitsdir=/data --lo=50 --hi=80 \
 TODO: make this into a common module for instruments.  They can import
 it and run the daemon or cleanup functions as tasks.
 """
-import sys, re, time
-import os, fnmatch
-import logging
+import time
+import re
+import os
+import fnmatch
 
 from g2base import ssdlog, Bunch
 from g2base.astro.frame import getFrameInfoFromPath
@@ -58,11 +59,11 @@ def get_disk_usage(path):
     return pctused
 
 def recursive_glob(treeroot, pattern):
-  results = []
-  for base, dirs, files in os.walk(treeroot):
-    goodfiles = fnmatch.filter(files, pattern)
-    results.extend(os.path.join(base, f) for f in goodfiles)
-  return results
+    results = []
+    for base, dirs, files in os.walk(treeroot):
+        goodfiles = fnmatch.filter(files, pattern)
+        results.extend(os.path.join(base, f) for f in goodfiles)
+    return results
 
 
 def cleanup(options, args, logger):
@@ -71,7 +72,7 @@ def cleanup(options, args, logger):
     specified by options.lowater
     """
 
-    files = recursive_glob(options.fitsdir, "*.fits")
+    files = recursive_glob(options.fitsdir, "*.fits*")
 
     # First pass.  Record information about files in FITS dir.
     logger.info("Cleanup PASS 1: information gathering.")
@@ -83,10 +84,16 @@ def cleanup(options, args, logger):
         logger.debug("Examining file '%s'" % fitspath)
 
         # If this is not a .fits file then move on
-        (pfx, ext) = os.path.splitext(fitspath)
-        if not re.match(r'^\.fits$', ext, re.IGNORECASE):
+        fitspath_l = fitspath.lower()
+        if '.' not in fitspath_l:
             logger.info("No FITS extension: '%s'" % fitspath)
             continue
+        i = fitspath_l.index('.')
+        ext = fitspath_l[i:]
+        if ext not in ['.fits', '.fits.fz', '.fits.gz']:
+            if not re.match(r'^\.(.*)\.\d{8}\-\d{6}$', ext):
+                logger.info("Not a FITS extension: '%s'" % fitspath)
+                continue
 
         # Assume: no age
         age = 0
